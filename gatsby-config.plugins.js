@@ -1,3 +1,5 @@
+const defaultLanguage = 'en';
+
 module.exports = [
     'gatsby-plugin-top-layout',
     'gatsby-plugin-react-helmet',
@@ -30,7 +32,17 @@ module.exports = [
             background_color: '#663399',
             theme_color: '#663399',
             display: 'minimal-ui',
-            icon: 'content/assets/gatsby-icon.png', // This path is relative to the root of the site.
+            icon: 'content/assets/favicon.png', // This path is relative to the root of the site.
+        },
+    },
+    {
+        resolve: 'gatsby-plugin-intl',
+        options: {
+            path: `${__dirname}/src/intl`,
+            languages: ['en', 'pt-br'],
+            defaultLanguage,
+            redirect: true,
+            redirectComponent: require.resolve('./src/utils/redirect.js'),
         },
     },
     {

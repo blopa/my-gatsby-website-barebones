@@ -1,11 +1,18 @@
 const plugins = require('./gatsby-config.plugins');
 
+const defaultLanguage = 'en';
+
 module.exports = {
-    pathPrefix: 'gatsby-material-ui-starter',
     siteMetadata: {
-        title: 'Gatsby Material UI Starter',
-        description: 'Kick off your next, great Gatsby project with this Material UI starter.',
-        author: '@blopa',
+        title: 'Resume Builder',
+        author: 'blopa',
+        summary: 'some summary for myself',
+        defaultLanguage,
+        description: 'Resume Builder',
+        siteUrl: 'https://resume-builder.js.org/',
+        social: {
+            twitter: 'thepiratepablo',
+        },
     },
     plugins,
 };

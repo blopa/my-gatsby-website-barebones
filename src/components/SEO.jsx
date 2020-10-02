@@ -1,31 +1,142 @@
-/**
- * SEO component that queries for data with
- *  Gatsby's useStaticQuery React hook
- *
- * See: https://www.gatsbyjs.org/docs/use-static-query/
- */
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import Helmet from 'react-helmet';
-import { useStaticQuery, graphql } from 'gatsby';
+import { graphql, useStaticQuery } from 'gatsby';
+import { generateSeoFriendlyVideoUrl } from '../utils/gatsby-frontend-helpers';
 
-function SEO({ description, lang, meta, title }) {
-    const { site } = useStaticQuery(
+function SEO({
+    description,
+    lang,
+    meta,
+    title,
+    robots,
+    keywords = [],
+    alternateLangLinks = [],
+    ogImage,
+    ogVideo,
+}) {
+    const { site, baseSiteImage } = useStaticQuery(
         graphql`
-      query {
-        site {
-          siteMetadata {
-            title
-            description
-            author
-          }
-        }
-      }
-    `
+            query {
+                site {
+                    siteMetadata {
+                        title
+                        description
+                        author
+                        social {
+                            twitter
+                        }
+                    }
+                }
+                baseSiteImage: file(
+                    absolutePath: { regex: "/base_site_image.jpg/" }
+                ) {
+                    childImageSharp {
+                        fixed(width: 1200) {
+                            ...GatsbyImageSharpFixed
+                        }
+                    }
+                }
+            }
+        `
     );
 
     const metaDescription = description || site.siteMetadata.description;
+    const seoMeta = [
+        {
+            name: 'viewport',
+            content: 'minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no',
+        },
+        {
+            name: 'description',
+            content: metaDescription,
+        },
+        {
+            property: 'og:title',
+            content: title,
+        },
+        {
+            property: 'og:description',
+            content: metaDescription,
+        },
+        {
+            property: 'og:type',
+            content: 'website',
+        },
+        {
+            name: 'twitter:card',
+            content: 'summary_large_image',
+        },
+        {
+            name: 'twitter:creator',
+            content: site.siteMetadata.social.twitter,
+        },
+        {
+            name: 'twitter:title',
+            content: title,
+        },
+        {
+            name: 'twitter:description',
+            content: metaDescription,
+        },
+        {
+            name: 'content-language',
+            content: lang,
+        },
+        {
+            name: 'article:tag',
+            content: keywords.join(', '),
+        },
+        {
+            name: 'viewport',
+            content: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no',
+        },
+    ].concat(meta);
+
+    let seoImage = ogImage;
+    if (ogVideo) {
+        const video = generateSeoFriendlyVideoUrl(ogVideo);
+        if (video) {
+            seoMeta.push({
+                property: 'og:video',
+                content: video,
+            });
+
+            if (!ogImage && video?.includes?.('youtube.')) {
+                const urlParts = video.split('youtube.com/v/');
+                const youtubeId = urlParts?.[1];
+                if (youtubeId) {
+                    seoImage = `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`;
+                }
+            }
+        }
+    }
+
+    if (robots) {
+        seoMeta.push({
+            property: 'robots',
+            content: robots,
+        });
+    }
+
+    if (!seoImage) {
+        const defaultImageSrc = baseSiteImage?.childImageSharp?.fixed?.src;
+        if (defaultImageSrc) {
+            seoImage = defaultImageSrc;
+        }
+    }
+
+    if (seoImage) {
+        seoMeta.push({
+            property: 'og:image',
+            content: seoImage,
+        });
+
+        seoMeta.push({
+            property: 'twitter:image',
+            content: seoImage,
+        });
+    }
 
     return (
         <Helmet
@@ -34,44 +145,8 @@ function SEO({ description, lang, meta, title }) {
             }}
             title={title}
             titleTemplate={`%s | ${site.siteMetadata.title}`}
-            meta={[
-                {
-                    name: 'viewport',
-                    content: 'minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no',
-                },
-                {
-                    name: 'description',
-                    content: metaDescription,
-                },
-                {
-                    property: 'og:title',
-                    content: title,
-                },
-                {
-                    property: 'og:description',
-                    content: metaDescription,
-                },
-                {
-                    property: 'og:type',
-                    content: 'website',
-                },
-                {
-                    name: 'twitter:card',
-                    content: 'summary',
-                },
-                {
-                    name: 'twitter:creator',
-                    content: site.siteMetadata.author,
-                },
-                {
-                    name: 'twitter:title',
-                    content: title,
-                },
-                {
-                    name: 'twitter:description',
-                    content: metaDescription,
-                },
-            ].concat(meta)}
+            meta={seoMeta}
+            link={alternateLangLinks}
         />
     );
 }
@@ -87,6 +162,7 @@ SEO.propTypes = {
     lang: PropTypes.string,
     meta: PropTypes.arrayOf(PropTypes.object),
     title: PropTypes.string.isRequired,
+    keywords: PropTypes.arrayOf(PropTypes.string),
 };
 
 export default SEO;
