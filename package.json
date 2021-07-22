@@ -70,7 +70,7 @@
         "typography": "^0.16.19",
         "typography-theme-wordpress-2016": "^0.16.19",
         "uuid": "^8.3.0",
-        "xlsx": "^0.16.7"
+        "xlsx": "^0.17.0"
     },
     "devDependencies": {
         "babel-preset-gatsby": "^0.5.12",
